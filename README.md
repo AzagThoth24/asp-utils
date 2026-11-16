@@ -48,13 +48,18 @@ ComfyUI v0.33.1 / 前端 1.48.7。
 
 ## 安装 / 部署
 
-把本目录放进 ComfyUI 的 `custom_nodes/` 后重启（无额外 Python 依赖）：
+无额外 Python 依赖。有则拉取、无则克隆（服务器同步脚本 / Dockerfile `RUN` 均可直接用）：
 
-```
-custom_nodes/asp-utils/
+```bash
+cd /comfyui/custom_nodes && \
+  if [ -d asp-utils/.git ]; then
+    git -C asp-utils pull --ff-only || echo "asp-utils 本地有改动，可执行: git -C asp-utils reset --hard origin/main"
+  else
+    git clone https://github.com/AzagThoth24/asp-utils.git
+  fi
 ```
 
-云上部署：目录同步到实例后重启 ComfyUI 即可（RunPod 网络卷同理）。
+装完重启 ComfyUI 即可。
 
 ## 触发词从哪来（优先级从高到低）
 
