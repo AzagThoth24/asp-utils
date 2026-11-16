@@ -1,0 +1,10 @@
+# 运行时用户数据（预设/触发词覆盖），不入库
+user/
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+# 系统
+.DS_Store
+Thumbs.db

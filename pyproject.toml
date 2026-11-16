@@ -1,0 +1,14 @@
+[project]
+name = "asp-utils"
+version = "0.1.0"
+description = "asp 自定义节点：多 LoRA 加载器（触发词/组预设/Nodes 2.0 兼容）+ Krea2 区域节点"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+dev = []
+
+[tool.comfy]
+# 发布到 Comfy Registry 时填写：PublisherId = "你的ID"
+includes = ["web"]
