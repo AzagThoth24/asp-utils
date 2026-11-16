@@ -53,11 +53,18 @@ ComfyUI v0.33.1 / 前端 1.48.7。
 ```bash
 cd /comfyui/custom_nodes && \
   if [ -d asp-utils/.git ]; then
-    git -C asp-utils pull --ff-only || echo "asp-utils 本地有改动，可执行: git -C asp-utils reset --hard origin/main"
+    if git -C asp-utils diff --quiet && git -C asp-utils diff --cached --quiet; then
+      git -C asp-utils pull --ff-only \
+        || echo "拉取失败（多为网络问题）。AutoDL 可先执行: source /etc/network_turbo 再重试"
+    else
+      echo "asp-utils 本地有改动，处理方式: git -C asp-utils stash && git -C asp-utils pull --ff-only"
+    fi
   else
     git clone https://github.com/AzagThoth24/asp-utils.git
   fi
 ```
+
+大陆服务器直连 GitHub 报 `GnuTLS recv error` 时，先 `source /etc/network_turbo`（AutoDL）再拉取，完成后 `unset http_proxy https_proxy`。
 
 装完重启 ComfyUI 即可。
 
