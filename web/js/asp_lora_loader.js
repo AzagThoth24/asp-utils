@@ -14,7 +14,7 @@ import { api } from "/scripts/api.js";
 
 const NODE_NAME = "AspPowerLoraLoader";
 const TAG = "[asp-lora]";
-const MIN_NODE_WIDTH = 430;
+const MIN_NODE_WIDTH = 470;
 
 // ---------------------------------------------------------------- 缓存与请求
 
@@ -222,67 +222,111 @@ function ensureStyle() {
   const style = document.createElement("style");
   style.id = "asp-utils-style";
   style.textContent = `
-.asp-lora { display: flex; flex-direction: column; gap: 4px; font-size: 12px;
-  color: var(--fg-color, #d4d4d4); user-select: auto; }
-.asp-toolbar { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
-.asp-preset { flex: 1 1 120px; min-width: 90px; max-width: 220px; height: 24px;
-  background: var(--comfy-input-bg, #222); color: inherit; border: 1px solid var(--border-color, #333);
-  border-radius: 4px; padding: 0 4px; font-size: 12px; }
-.asp-btn { height: 24px; padding: 0 8px; font-size: 12px; cursor: pointer;
+.asp-lora { display: flex; flex-direction: column; gap: 8px; padding: 4px 2px;
+  width: 100%; min-width: 380px; box-sizing: border-box; font-size: 12px;
+  color: var(--fg-color, #d4d4d4); user-select: auto; line-height: 1.4; }
+
+/* ---- 工具栏：第一行 预设选择+图标按钮，第二行 大按钮 ---- */
+.asp-toolbar { display: flex; gap: 6px; align-items: center; }
+.asp-preset { flex: 1 1 auto; min-width: 0; height: 28px; padding: 0 6px; font-size: 12px;
+  background: var(--comfy-input-bg, #222); color: inherit;
+  border: 1px solid var(--border-color, #333); border-radius: 6px; }
+.asp-preset:hover { border-color: #4f7cff; }
+.asp-toolbtn { flex: 0 0 auto; width: 32px; height: 28px; padding: 0; font-size: 14px;
+  line-height: 1; display: inline-flex; align-items: center; justify-content: center;
+  background: var(--comfy-input-bg, #2a2a2a); color: inherit; cursor: pointer;
+  border: 1px solid var(--border-color, #3a3a3a); border-radius: 6px; }
+.asp-toolbtn:hover { border-color: #4f7cff; }
+.asp-toolbtn.asp-danger:hover { border-color: #c33; }
+.asp-toolbar2 { display: flex; gap: 6px; }
+.asp-add { flex: 1 1 auto; height: 30px; font-size: 12px; font-weight: 600; cursor: pointer;
+  color: #fff; background: #4f7cff; border: 1px solid #6b93ff; border-radius: 6px; }
+.asp-add:hover { background: #5d87ff; }
+.asp-saveas { flex: 0 0 auto; height: 30px; padding: 0 12px; font-size: 12px; cursor: pointer;
   background: var(--comfy-input-bg, #2a2a2a); color: inherit;
-  border: 1px solid var(--border-color, #3a3a3a); border-radius: 4px; white-space: nowrap; }
-.asp-btn:hover { border-color: var(--p-button-text-primary-hover-bg, #6a6a6a); }
-.asp-btn.asp-primary { border-color: #4f7cff; }
-.asp-btn.asp-danger:hover { border-color: #c33; color: #e66; }
-.asp-add { border-color: #4f7cff; }
-.asp-flex { flex: 1 1 auto; }
-.asp-empty { padding: 10px 4px; text-align: center; opacity: 0.55; }
-.asp-row { border: 1px solid var(--border-color, #333); border-radius: 6px; padding: 4px 6px;
-  display: flex; flex-direction: column; gap: 3px; background: rgba(0,0,0,0.18); }
+  border: 1px solid var(--border-color, #3a3a3a); border-radius: 6px; }
+.asp-saveas:hover { border-color: #4f7cff; }
+
+/* ---- 行卡片 ---- */
+.asp-row { display: flex; flex-direction: column; gap: 6px; padding: 8px;
+  border: 1px solid var(--border-color, #333); border-radius: 8px;
+  background: rgba(0, 0, 0, 0.18); }
 .asp-row.asp-off { opacity: 0.45; }
-.asp-line1 { display: flex; gap: 6px; align-items: center; min-width: 0; }
-.asp-toggle { position: relative; display: inline-block; width: 26px; height: 14px; flex: 0 0 auto; margin: 0; }
+.asp-line1 { display: flex; gap: 8px; align-items: center; min-width: 0; }
+
+.asp-toggle { position: relative; display: inline-block; width: 30px; height: 16px;
+  flex: 0 0 auto; margin: 0; }
 .asp-toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
-.asp-toggle span { position: absolute; inset: 0; border-radius: 8px;
+.asp-toggle span { position: absolute; inset: 0; border-radius: 9px;
   background: #555; transition: background 0.15s; cursor: pointer; }
-.asp-toggle span::after { content: ""; position: absolute; top: 2px; left: 2px; width: 10px; height: 10px;
-  border-radius: 50%; background: #ddd; transition: left 0.15s; }
+.asp-toggle span::after { content: ""; position: absolute; top: 2px; left: 2px;
+  width: 12px; height: 12px; border-radius: 50%; background: #ddd; transition: left 0.15s; }
 .asp-toggle input:checked + span { background: #4f7cff; }
-.asp-toggle input:checked + span::after { left: 14px; }
-.asp-name { flex: 1 1 auto; min-width: 60px; text-align: left; height: 22px; padding: 0 6px;
+.asp-toggle input:checked + span::after { left: 16px; }
+
+.asp-name { flex: 1 1 auto; min-width: 80px; height: 26px; padding: 0 8px;
+  text-align: left; font-size: 12px; font-weight: 500; cursor: pointer;
   background: var(--comfy-input-bg, #222); color: inherit;
-  border: 1px solid var(--border-color, #333); border-radius: 4px;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; font-size: 12px; }
+  border: 1px solid var(--border-color, #333); border-radius: 6px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .asp-name:hover { border-color: #4f7cff; }
-.asp-str { display: inline-flex; align-items: center; gap: 3px; flex: 0 0 auto; }
-.asp-str label { opacity: 0.6; font-size: 11px; }
-.asp-str input { width: 52px; height: 22px; padding: 0 4px; font-size: 12px;
+.asp-name.asp-empty-name { color: #888; font-weight: 400; font-style: italic; }
+
+.asp-str { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 4px; }
+.asp-str label { font-size: 11px; opacity: 0.55; }
+.asp-str input { width: 62px; height: 26px; padding: 0 6px; font-size: 12px;
   background: var(--comfy-input-bg, #222); color: inherit;
-  border: 1px solid var(--border-color, #333); border-radius: 4px; }
-.asp-ops { display: inline-flex; gap: 2px; flex: 0 0 auto; }
-.asp-ops button { width: 20px; height: 20px; padding: 0; font-size: 11px; line-height: 1;
-  background: transparent; color: inherit; border: 1px solid transparent; border-radius: 4px; cursor: pointer; }
+  border: 1px solid var(--border-color, #333); border-radius: 6px; }
+.asp-str input:focus { outline: none; border-color: #4f7cff; }
+
+.asp-ops { flex: 0 0 auto; display: inline-flex; gap: 2px; }
+.asp-ops button { width: 22px; height: 22px; padding: 0; font-size: 11px; line-height: 1;
+  background: transparent; color: inherit; cursor: pointer;
+  border: 1px solid transparent; border-radius: 5px; }
 .asp-ops button:hover { border-color: var(--border-color, #444); background: rgba(255,255,255,0.06); }
-.asp-trig { display: flex; align-items: center; gap: 6px; min-width: 0; opacity: 0.85; }
-.asp-trig-text { flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  cursor: pointer; font-size: 11px; }
-.asp-trig-text:hover { text-decoration: underline dotted; }
-.asp-trig-text.asp-dim { opacity: 0.45; font-style: italic; }
-.asp-trig-edit { flex: 0 0 auto; }
+.asp-ops button.asp-rowdel:hover { border-color: #c33; color: #e66; }
+
+/* ---- 触发词标签块 ---- */
+.asp-line2 { display: flex; gap: 6px; align-items: flex-start; min-width: 0; }
+.asp-tags { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; min-width: 0; flex: 1 1 auto;
+  max-height: 58px; overflow: hidden; }
+.asp-tag { padding: 1px 7px; font-size: 11px; cursor: pointer; white-space: nowrap;
+  background: rgba(79, 124, 255, 0.14); color: #9db7ff;
+  border: 1px solid rgba(79, 124, 255, 0.35); border-radius: 999px; }
+.asp-tag:hover { background: rgba(79, 124, 255, 0.28); }
+.asp-tags-note { font-size: 11px; opacity: 0.45; font-style: italic; }
+.asp-tagops { flex: 0 0 auto; display: inline-flex; gap: 2px; }
+
+/* ---- 通用按钮 ---- */
+.asp-btn { height: 28px; padding: 0 12px; font-size: 12px; cursor: pointer;
+  background: var(--comfy-input-bg, #2a2a2a); color: inherit;
+  border: 1px solid var(--border-color, #3a3a3a); border-radius: 6px; white-space: nowrap; }
+.asp-btn:hover { border-color: #4f7cff; }
+.asp-btn.asp-primary { border-color: #4f7cff; }
+.asp-mini { width: 24px; height: 22px; padding: 0; font-size: 11px; line-height: 1;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: transparent; color: inherit; cursor: pointer;
+  border: 1px solid var(--border-color, #3a3a3a); border-radius: 5px; }
+.asp-mini:hover { border-color: #4f7cff; background: rgba(79,124,255,0.12); }
+
+.asp-empty { padding: 14px 8px; text-align: center; opacity: 0.5; font-size: 12px;
+  border: 1px dashed var(--border-color, #333); border-radius: 8px; }
+
+/* ---- 弹窗 ---- */
 .asp-backdrop { position: fixed; inset: 0; z-index: 100000; background: rgba(0,0,0,0.55);
   display: flex; align-items: center; justify-content: center; }
-.asp-dialog { width: min(480px, 92vw); max-height: 78vh; display: flex; flex-direction: column; gap: 8px;
+.asp-dialog { width: min(500px, 92vw); max-height: 78vh; display: flex; flex-direction: column; gap: 10px;
   background: var(--comfy-menu-bg, #1e1e1e); border: 1px solid var(--border-color, #3a3a3a);
-  border-radius: 8px; padding: 12px 14px; box-shadow: 0 8px 30px rgba(0,0,0,0.5); }
+  border-radius: 10px; padding: 14px 16px; box-shadow: 0 8px 30px rgba(0,0,0,0.5); }
 .asp-dialog-title { font-size: 13px; font-weight: 600; }
-.asp-dialog-input { width: 100%; box-sizing: border-box; height: 26px; padding: 0 6px; font-size: 12px;
+.asp-dialog-input { width: 100%; box-sizing: border-box; height: 28px; padding: 0 8px; font-size: 12px;
   background: var(--comfy-input-bg, #222); color: inherit;
-  border: 1px solid var(--border-color, #333); border-radius: 4px; resize: vertical; }
-textarea.asp-dialog-input { height: auto; padding: 4px 6px; }
-.asp-dialog-row { display: flex; gap: 6px; justify-content: flex-end; align-items: center; }
-.asp-picker-list { flex: 1 1 auto; overflow-y: auto; min-height: 200px; max-height: 46vh;
-  border: 1px solid var(--border-color, #2e2e2e); border-radius: 4px; background: rgba(0,0,0,0.25); }
-.asp-picker-item { padding: 5px 8px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  border: 1px solid var(--border-color, #333); border-radius: 6px; resize: vertical; }
+textarea.asp-dialog-input { height: auto; padding: 6px 8px; }
+.asp-dialog-row { display: flex; gap: 8px; justify-content: flex-end; align-items: center; }
+.asp-picker-list { flex: 1 1 auto; overflow-y: auto; min-height: 220px; max-height: 46vh;
+  border: 1px solid var(--border-color, #2e2e2e); border-radius: 6px; background: rgba(0,0,0,0.25); }
+.asp-picker-item { padding: 6px 10px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.04); }
 .asp-picker-item:hover, .asp-picker-item.asp-current { background: rgba(79,124,255,0.16); }
 .asp-picker-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
 .asp-picker-meta { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; opacity: 0.6; }
@@ -309,15 +353,9 @@ function safeParse(value) {
 }
 
 function shortName(name) {
-  if (!name) return "＋ 选择 LoRA";
+  if (!name) return "";
   const base = name.split("/").pop();
   return base.replace(/\.(safetensors|sft|ckpt|pt)$/i, "");
-}
-
-function triggerText(info) {
-  if (!info) return null;
-  const words = info.trigger_words || [];
-  return words.length ? `🏷 ${words.join(", ")}` : null;
 }
 
 function makeRowEl(row, idx) {
@@ -337,34 +375,51 @@ function makeRowEl(row, idx) {
       <span class="asp-ops">
         <button data-op="up" title="上移">↑</button>
         <button data-op="down" title="下移">↓</button>
-        <button data-op="del" title="删除该行">✕</button>
+        <button data-op="del" class="asp-rowdel" title="删除该行">✕</button>
       </span>
     </div>
-    <div class="asp-trig">
-      <span class="asp-trig-text asp-dim">触发词加载中…</span>
-      <button class="asp-btn asp-trig-edit" data-op="tags" title="手动编辑触发词">✎</button>
+    <div class="asp-line2">
+      <span class="asp-tags"><span class="asp-tags-note">…</span></span>
+      <span class="asp-tagops">
+        <button class="asp-mini" data-op="copyall" title="复制全部触发词">📋</button>
+        <button class="asp-mini" data-op="tags" title="手动编辑触发词">✎</button>
+      </span>
     </div>`;
   el.querySelector('[data-k="on"]').checked = !!row.on;
   const nameBtn = el.querySelector(".asp-name");
-  nameBtn.textContent = shortName(row.lora);
+  const shown = shortName(row.lora);
+  nameBtn.textContent = shown || "选择 LoRA…";
+  nameBtn.classList.toggle("asp-empty-name", !shown);
   nameBtn.title = row.lora || "点击选择 LoRA";
-  const sm = el.querySelector('[data-k="strength_model"]');
-  const sc = el.querySelector('[data-k="strength_clip"]');
-  sm.value = row.strength_model;
-  sc.value = row.strength_clip;
+  el.querySelector('[data-k="strength_model"]').value = row.strength_model;
+  el.querySelector('[data-k="strength_clip"]').value = row.strength_clip;
   return el;
 }
 
 function refreshTriggerLine(st, rowEl) {
   const row = st.rows[Number(rowEl.dataset.idx)];
-  const textEl = rowEl.querySelector(".asp-trig-text");
-  if (!row || !textEl) return;
+  const wrap = rowEl.querySelector(".asp-tags");
+  if (!row || !wrap) return;
   const render = () => {
     const info = findLoraInfo(row.lora);
-    const text = triggerText(info);
-    textEl.textContent = text || "（无触发词信息 · 点击 ✎ 手动填写）";
-    textEl.classList.toggle("asp-dim", !text);
-    textEl.title = info?.base_model ? `base: ${info.base_model}` : (text || "");
+    const words = info?.trigger_words || [];
+    wrap.innerHTML = "";
+    wrap.title = info?.base_model ? `base: ${info.base_model}` : "";
+    if (!words.length) {
+      const note = document.createElement("span");
+      note.className = "asp-tags-note";
+      note.textContent = row.lora ? "（无触发词 · ✎ 手动填写）" : "";
+      wrap.appendChild(note);
+      return;
+    }
+    for (const word of words.slice(0, 24)) {
+      const chip = document.createElement("span");
+      chip.className = "asp-tag";
+      chip.textContent = word;
+      chip.dataset.word = word;
+      chip.title = `点击复制：${word}`;
+      wrap.appendChild(chip);
+    }
   };
   if (!loraCache.list.length) {
     getLoras().then(render);
@@ -423,14 +478,15 @@ function buildUi(node, dataWidget) {
   el.innerHTML = `
     <div class="asp-toolbar">
       <select class="asp-preset" title="切换预设（立即应用到当前行）"></select>
-      <button class="asp-btn" data-act="save" title="把当前行覆盖保存到选中预设">保存</button>
-      <button class="asp-btn" data-act="saveas" title="用新名字保存当前行">另存为</button>
-      <button class="asp-btn asp-danger" data-act="del" title="删除选中预设">删除</button>
-      <span class="asp-flex"></span>
-      <button class="asp-btn asp-add" data-act="add">＋ 添加 LoRA</button>
+      <button class="asp-toolbtn" data-act="save" title="把当前行覆盖保存到选中预设">💾</button>
+      <button class="asp-toolbtn asp-danger" data-act="del" title="删除选中预设">🗑</button>
     </div>
-    <div class="asp-rows"></div>
-    <div class="asp-empty">还没有 LoRA，点「＋ 添加 LoRA」开始</div>`;
+    <div class="asp-toolbar2">
+      <button class="asp-add" data-act="add">＋ 添加 LoRA</button>
+      <button class="asp-saveas" data-act="saveas" title="用新名字保存当前行">另存为…</button>
+    </div>
+    <div class="asp-rows" style="display:flex;flex-direction:column;gap:8px;"></div>
+    <div class="asp-empty">还没有 LoRA<br>点上面的「＋ 添加 LoRA」开始</div>`;
   return el;
 }
 
@@ -440,15 +496,12 @@ function wireEvents(st) {
   el.addEventListener("change", (e) => {
     const k = e.target.dataset?.k;
     const rowEl = e.target.closest(".asp-row");
-    if (!rowEl) return;
-    const idx = Number(rowEl.dataset.idx);
-    const row = st.rows[idx];
+    if (k !== "on" || !rowEl) return;
+    const row = st.rows[Number(rowEl.dataset.idx)];
     if (!row) return;
-    if (k === "on") {
-      row.on = e.target.checked;
-      rowEl.classList.toggle("asp-off", !row.on);
-      commit(st);
-    }
+    row.on = e.target.checked;
+    rowEl.classList.toggle("asp-off", !row.on);
+    commit(st);
   });
 
   el.addEventListener("input", (e) => {
@@ -465,17 +518,16 @@ function wireEvents(st) {
   });
 
   el.addEventListener("click", async (e) => {
-    const btn = e.target.closest("button");
-    if (!btn) {
-      // 点击触发词文本 = 复制
-      const trig = e.target.closest(".asp-trig-text");
-      if (trig && !trig.classList.contains("asp-dim")) {
-        const ok = await copyText(trig.textContent.replace(/^🏷\s*/, ""));
-        toast(ok ? "success" : "error", ok ? "触发词已复制" : "复制失败，请手动选择文本");
-      }
+    // 触发词标签：点击复制单个词
+    const chip = e.target.closest(".asp-tag");
+    if (chip) {
+      const ok = await copyText(chip.dataset.word || chip.textContent);
+      toast(ok ? "success" : "error", ok ? `已复制：${chip.dataset.word}` : "复制失败");
       return;
     }
 
+    const btn = e.target.closest("button");
+    if (!btn) return;
     const act = btn.dataset.act;
     const op = btn.dataset.op;
     const rowEl = btn.closest(".asp-row");
@@ -523,6 +575,12 @@ function wireEvents(st) {
       } else if (op === "del") {
         st.rows.splice(idx, 1);
         renderRows(st); commit(st);
+      } else if (op === "copyall") {
+        const row = st.rows[idx];
+        const words = (findLoraInfo(row.lora)?.trigger_words || []).join(", ");
+        if (!words) return toast("warn", "该 LoRA 没有触发词");
+        const ok = await copyText(words);
+        toast(ok ? "success" : "error", ok ? "触发词已复制" : "复制失败");
       } else if (op === "tags") {
         const row = st.rows[idx];
         if (!row.lora) return toast("warn", "请先选择 LoRA");
@@ -537,20 +595,17 @@ function wireEvents(st) {
         const resp = await requestJson("/asp/lora_tags", { lora: row.lora, trigger_words: words });
         toast(resp.ok ? "success" : "error", resp.message || "");
         if (resp.ok) {
-          loraCache.at = 0;
           await getLoras(true);
           renderRows(st);
         }
-      }
-    }
-
-    if (btn.classList.contains("asp-name")) {
-      const row = st.rows[idx];
-      const name = await pickLora(row?.lora || "");
-      if (name && row) {
-        row.lora = name;
-        renderRows(st);
-        commit(st);
+      } else if (btn.classList.contains("asp-name")) {
+        const row = st.rows[idx];
+        const name = await pickLora(row?.lora || "");
+        if (name && row) {
+          row.lora = name;
+          renderRows(st);
+          commit(st);
+        }
       }
     }
   });
@@ -605,10 +660,12 @@ function setupNode(node) {
   const domWidget = node.addDOMWidget("asp_lora_ui", "aspLoraRows", el, {
     hideOnZoom: false,
     serialize: false,
-    getMinHeight: () => Math.max(88, el.scrollHeight),
-    getMaxHeight: () => 760,
-    getHeight: () => Math.max(88, el.scrollHeight),
+    getMinHeight: () => Math.max(150, el.offsetHeight),
+    getMaxHeight: () => 900,
+    getHeight: () => Math.max(150, el.offsetHeight),
   });
+  // 高度跟随内容，让节点尺寸计算拿到真实值
+  domWidget.computeSize = (w) => [w, Math.max(150, el.offsetHeight) + 10];
   st.domWidget = domWidget;
 
   wireEvents(st);
@@ -622,7 +679,7 @@ function setupNode(node) {
     return r;
   };
 
-  // 行数变化时让画布重新计算 DOM widget 高度
+  // 内容高度变化时让画布重算 DOM widget 布局
   const observer = new ResizeObserver(() => {
     node.setDirtyCanvas?.(true, true);
   });
