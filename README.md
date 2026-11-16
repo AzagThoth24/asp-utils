@@ -31,6 +31,15 @@ ADR ECS-WIDGETS-0023 双渲染桥接），不 patch 原型、不自绘 canvas，
 旧画布与 Nodes 2.0 beta 渲染下均可正常交互。远端验证环境：
 ComfyUI v0.33.1 / 前端 1.48.7。
 
+前端 1.4x 两个硬性约束（改 `asp_lora_loader.js` 前必读）：
+
+- 隐藏 `lora_data` 必须设 `widget.hidden = true`：litegraph 的
+  `getLayoutWidgets`/`isWidgetVisible` 只认 `hidden` 标志，
+  `type='hidden'` + `computeSize=[0,-4]` 的老写法已失效（JSON 框会露出来）。
+- DOM widget 挂载元素会被前端强制加 `h-full`，`offsetHeight` 恒等于
+  已分配高度、测不出内容真实高度；内容高度必须测内层 `.asp-inner`，
+  否则行数增多时 widget 高度不涨、内容溢出节点（UI 挤成一坨）。
+
 ### 2. Krea2 区域节点（自 ComfyUI-Krea2-RegionCanvas 收编）
 
 注册 key 与原包完全一致（旧工作流零影响）：

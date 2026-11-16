@@ -7,6 +7,14 @@
 //  - 行数据序列化到隐藏的 lora_data STRING widget（JSON 字符串），
 //    DOM widget 自身 serialize:false
 //
+// 隐藏 lora_data 必须设 widget.hidden = true（前端 1.4x 起
+// getLayoutWidgets/isWidgetVisible 只认 hidden 标志；type='hidden' 与
+// computeSize=[0,-4] 仅作为旧版前端的兜底保留）。
+//
+// DOM widget 高度：前端会给挂载元素强制加 h-full（height:100% 锁死在
+// 已分配高度上），所以内容高度必须测 .asp-inner（自然高度）而不是外层
+// 元素的 offsetHeight，否则行数增加时高度永远不会涨、内容溢出节点。
+//
 // 路由约定见 asp_server/__init__.py（前缀 /asp）。
 
 import { app } from "/scripts/app.js";
@@ -222,9 +230,12 @@ function ensureStyle() {
   const style = document.createElement("style");
   style.id = "asp-utils-style";
   style.textContent = `
-.asp-lora { display: flex; flex-direction: column; gap: 8px; padding: 4px 2px;
-  width: 100%; min-width: 380px; box-sizing: border-box; font-size: 12px;
+/* 外层元素会被前端强制加 h-full/w-full，高度锁定为已分配高度；
+   内容自然高度一律由 .asp-inner 决定（见 measureH） */
+.asp-lora { padding: 4px 2px; width: 100%; box-sizing: border-box; font-size: 12px;
   color: var(--fg-color, #d4d4d4); user-select: auto; line-height: 1.4; }
+.asp-inner { display: flex; flex-direction: column; gap: 8px; min-height: 150px; }
+.asp-rows { display: flex; flex-direction: column; gap: 8px; }
 
 /* ---- 工具栏：第一行 预设选择+图标按钮，第二行 大按钮 ---- */
 .asp-toolbar { display: flex; gap: 6px; align-items: center; }
@@ -470,23 +481,30 @@ function syncIn(node) {
   st.presetName = data.preset;
   renderRows(st);
   refreshPresetSelect(st);
+  // 旧工作流可能保存了过窄的节点宽度，行内容（开关+名字+双强度+操作键）会被压扁
+  if ((node.size?.[0] || 0) < MIN_NODE_WIDTH) {
+    node.size[0] = MIN_NODE_WIDTH;
+    node.setDirtyCanvas?.(true, true);
+  }
 }
 
 function buildUi(node, dataWidget) {
   const el = document.createElement("div");
   el.className = "asp-lora";
   el.innerHTML = `
-    <div class="asp-toolbar">
-      <select class="asp-preset" title="切换预设（立即应用到当前行）"></select>
-      <button class="asp-toolbtn" data-act="save" title="把当前行覆盖保存到选中预设">💾</button>
-      <button class="asp-toolbtn asp-danger" data-act="del" title="删除选中预设">🗑</button>
-    </div>
-    <div class="asp-toolbar2">
-      <button class="asp-add" data-act="add">＋ 添加 LoRA</button>
-      <button class="asp-saveas" data-act="saveas" title="用新名字保存当前行">另存为…</button>
-    </div>
-    <div class="asp-rows" style="display:flex;flex-direction:column;gap:8px;"></div>
-    <div class="asp-empty">还没有 LoRA<br>点上面的「＋ 添加 LoRA」开始</div>`;
+    <div class="asp-inner">
+      <div class="asp-toolbar">
+        <select class="asp-preset" title="切换预设（立即应用到当前行）"></select>
+        <button class="asp-toolbtn" data-act="save" title="把当前行覆盖保存到选中预设">💾</button>
+        <button class="asp-toolbtn asp-danger" data-act="del" title="删除选中预设">🗑</button>
+      </div>
+      <div class="asp-toolbar2">
+        <button class="asp-add" data-act="add">＋ 添加 LoRA</button>
+        <button class="asp-saveas" data-act="saveas" title="用新名字保存当前行">另存为…</button>
+      </div>
+      <div class="asp-rows"></div>
+      <div class="asp-empty">还没有 LoRA<br>点上面的「＋ 添加 LoRA」开始</div>
+    </div>`;
   return el;
 }
 
@@ -649,7 +667,10 @@ function setupNode(node) {
     console.warn(TAG, "找不到 lora_data widget，前端 UI 未启用");
     return;
   }
-  // 隐藏原始 STRING widget（保留序列化；value 由 DOM UI 维护）
+  // 隐藏原始 STRING widget（保留序列化；value 由 DOM UI 维护）。
+  // hidden 标志是前端 1.4x 唯一认的隐藏方式；type/computeSize 为旧版兜底。
+  dataWidget.hidden = true;
+  if (dataWidget.options) dataWidget.options.hidden = true;
   dataWidget.type = "hidden";
   dataWidget.computeSize = () => [0, -4];
 
@@ -657,15 +678,24 @@ function setupNode(node) {
   const st = { node, el, dataWidget, rows: [], presetName: "" };
   nodeState.set(node, st);
 
+  // 内容真实高度：测 .asp-inner（自然高度）。外层 el 被前端加了 h-full，
+  // offsetHeight 恒等于已分配高度，永远测不出“内容需要多高”。
+  // PAD = 前端左右 margin(10×2) + el 内边距 + 余量。
+  const PAD = 34;
+  const measureH = () => {
+    const inner = el.querySelector(".asp-inner");
+    return Math.max(150, inner?.offsetHeight || 0) + PAD;
+  };
+
   const domWidget = node.addDOMWidget("asp_lora_ui", "aspLoraRows", el, {
     hideOnZoom: false,
     serialize: false,
-    getMinHeight: () => Math.max(150, el.offsetHeight),
-    getMaxHeight: () => 900,
-    getHeight: () => Math.max(150, el.offsetHeight),
+    getMinHeight: measureH,
+    getMaxHeight: measureH,
+    getHeight: measureH,
   });
-  // 高度跟随内容，让节点尺寸计算拿到真实值
-  domWidget.computeSize = (w) => [w, Math.max(150, el.offsetHeight) + 10];
+  // 高度锁定为内容高度（fixed widget 路径），节点随之自动长高
+  domWidget.computeSize = (w) => [w || 0, measureH()];
   st.domWidget = domWidget;
 
   wireEvents(st);
@@ -679,18 +709,16 @@ function setupNode(node) {
     return r;
   };
 
-  // 内容高度变化时让画布重算 DOM widget 布局
+  // 内容高度/宽度变化时让画布重算 DOM widget 布局（观测 inner 才会随行数变化触发）
   const observer = new ResizeObserver(() => {
     node.setDirtyCanvas?.(true, true);
   });
-  observer.observe(el);
+  observer.observe(el.querySelector(".asp-inner") || el);
   const origOnRemoved = node.onRemoved;
   node.onRemoved = function (...args) {
     try { observer.disconnect(); } catch (_) { /* noop */ }
     return origOnRemoved?.apply(this, args);
   };
-
-  if ((node.size?.[0] || 0) < MIN_NODE_WIDTH) node.size[0] = MIN_NODE_WIDTH;
 }
 
 app.registerExtension({
